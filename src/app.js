@@ -15,6 +15,8 @@ import { firebaseConfig, VAPID_KEY } from './firebase-config.js';
 import { H, MIN, keyOf, nextIntervalSlot as nextSlot, pending as pendingRaw, upcoming, shouldNotify } from './schedule.js';
 
 const NATIVE = Capacitor.isNativePlatform();
+const APP_BUILD = typeof __APP_BUILD__ !== 'undefined' ? __APP_BUILD__ : 0;
+const RELEASES_API = 'https://api.github.com/repos/rormenom/pastillero/releases/latest';
 const COLORS = ['#E07A5F', '#3D8B7D', '#6C8EBF', '#C9A227', '#9C6ADE', '#D16BA5'];
 const DAYS_AHEAD = 4;      // días de alarmas locales que se dejan programadas
 const MAX_REPEATS = 8;     // repeticiones por toma si no se marca
@@ -471,6 +473,47 @@ $('btnTest').onclick = async () => {
   $('alarmDoses').innerHTML = `<div class="dose"><div class="n">Prueba de alarma</div><div class="d">Toca cualquier botón para cerrar</div><div class="b"><button class="btn light" data-a="x" data-test="1">Tomado</button><button class="btn clear" data-a="x" data-test="1">+10 min</button><button class="btn clear" data-a="x" data-test="1">Omitir</button></div></div>`;
   $('alarm').classList.add('on'); chime();
 };
+
+
+// ---------- actualizaciones (solo Android) ----------
+let update = null;
+async function checkUpdate(manual) {
+  if (!NATIVE) return;
+  try {
+    const last = +localStorage.getItem('pastillero.updCheck') || 0;
+    if (!manual && Date.now() - last < 6 * H && localStorage.getItem('pastillero.upd')) {
+      update = JSON.parse(localStorage.getItem('pastillero.upd'));
+    } else {
+      const r = await fetch(RELEASES_API, { headers: { Accept: 'application/vnd.github+json' } });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const j = await r.json();
+      const build = +((j.tag_name || '').split('.').pop()) || 0;
+      const asset = (j.assets || []).find(x => x.name.endsWith('.apk'));
+      update = asset ? { build, name: j.tag_name.replace(/^v/, ''), url: asset.browser_download_url } : null;
+      localStorage.setItem('pastillero.updCheck', String(Date.now()));
+      localStorage.setItem('pastillero.upd', JSON.stringify(update));
+    }
+  } catch (e) { if (manual) toast('No se pudo revisar (¿sin internet?)'); }
+  renderUpdate();
+  if (manual && update && update.build <= APP_BUILD) toast('Tienes la última versión');
+}
+function renderUpdate() {
+  if (!NATIVE) return;
+  $('secVersion').style.display = ''; $('cardVersion').style.display = '';
+  $('verLabel').textContent = 'Versión 1.0.' + APP_BUILD;
+  const has = update && update.build > APP_BUILD;
+  $('verState').textContent = has ? 'Disponible: ' + update.name : 'Al día';
+  $('btnUpd').textContent = has ? 'Actualizar' : 'Buscar';
+  $('updBanner').innerHTML = has ? `<div class="banner" style="background:#E8F2EF;border-color:#BFDCD4;color:var(--teal)"><span><b>Nueva versión ${esc(update.name)}</b><br>Toca para descargar e instalar.</span><button class="btn sm" data-upd="1">Actualizar</button></div>` : '';
+}
+function openUpdate() {
+  if (!update) return;
+  toast('Descargando… abre el archivo para instalar');
+  window.location.href = update.url; // Android lo abre en el navegador y descarga el APK
+}
+$('btnUpd').onclick = () => (update && update.build > APP_BUILD) ? openUpdate() : checkUpdate(true);
+document.body.addEventListener('click', e => { if (e.target.closest('[data-upd]')) openUpdate(); });
+if (NATIVE) { checkUpdate(false); CapApp.addListener('resume', () => checkUpdate(false)); }
 
 // ---------- inicio ----------
 setInterval(tick, 15000);

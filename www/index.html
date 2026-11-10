@@ -157,6 +157,7 @@ body{padding-top:env(safe-area-inset-top)}
   </header>
 
   <section class="view on" id="v-hoy">
+    <div id="updBanner"></div>
     <div id="notifBanner"></div>
     <div id="nextBox"></div>
     <div class="sec"><h2>Tomas de hoy</h2><small id="progress"></small></div>
@@ -182,6 +183,10 @@ body{padding-top:env(safe-area-inset-top)}
       <div class="set-row"><div><b>Notificaciones</b><div class="hint" id="notifState"></div></div><button class="btn sm ghost" id="btnNotif">Activar</button></div>
       <div class="set-row" id="rowExact" style="display:none"><div><b>Alarmas exactas</b><div class="hint" id="exactState"></div></div><button class="btn sm ghost" id="btnExact">Permitir</button></div>
       <div class="set-row"><div><b>Probar aviso</b></div><button class="btn sm ghost" id="btnTest">Probar</button></div>
+    </div>
+    <div class="sec" id="secVersion" style="display:none"><h2>App</h2></div>
+    <div class="card" id="cardVersion" style="display:none">
+      <div class="set-row"><div><b id="verLabel">Versión</b><div class="hint" id="verState"></div></div><button class="btn sm ghost" id="btnUpd">Buscar</button></div>
     </div>
     <div class="sec"><h2>Cuenta</h2></div>
     <div class="card">

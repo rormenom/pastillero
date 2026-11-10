@@ -5,9 +5,14 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   apk:
     runs-on: ubuntu-24.04
+    env:
+      APP_BUILD: ${{ github.run_number }}
     steps:
       - uses: actions/checkout@v7
 
@@ -20,11 +25,6 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Revisar Android SDK
-        run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          ls "$ANDROID_HOME"
-
       - name: Instalar dependencias y compilar la web
         run: |
           npm install --no-audit --no-fund
@@ -36,29 +36,44 @@ jobs:
           npx @capacitor/assets generate --android
           mkdir -p android/app/src/main/res/drawable
           cp android-res/drawable/*.xml android/app/src/main/res/drawable/
+          # número de versión = número de compilación
+          sed -i -E "s/versionCode [0-9]+/versionCode ${APP_BUILD}/; s/versionName \"[^\"]*\"/versionName \"1.0.${APP_BUILD}\"/" android/app/build.gradle
+          grep -E "versionCode|versionName" android/app/build.gradle
           npx cap sync android
 
-      - name: Firmar (opcional) y compilar
+      - name: Compilar APK firmado
         env:
-          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
           KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
         run: |
           cd android
           chmod +x gradlew
-          if [ -n "$KEYSTORE_B64" ]; then
-            echo "$KEYSTORE_B64" | base64 -d > app/release.jks
+          if [ -n "$KEYSTORE_PASS" ]; then
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in ../android-res/release.jks.enc -out app/release.jks -pass env:KEYSTORE_PASS
             ./gradlew assembleRelease \
               -Pandroid.injected.signing.store.file=$PWD/app/release.jks \
               -Pandroid.injected.signing.store.password="$KEYSTORE_PASS" \
               -Pandroid.injected.signing.key.alias=pastillero \
               -Pandroid.injected.signing.key.password="$KEYSTORE_PASS"
             cp app/build/outputs/apk/release/app-release.apk ../Pastillero.apk
+            echo "SIGNED=1" >> $GITHUB_ENV
           else
+            echo "::warning::Falta el secreto KEYSTORE_PASS: se genera un APK de prueba sin firma fija y no se publica."
             ./gradlew assembleDebug
             cp app/build/outputs/apk/debug/app-debug.apk ../Pastillero.apk
           fi
+          rm -f app/release.jks
 
       - uses: actions/upload-artifact@v7
         with:
           name: Pastillero-apk
           path: Pastillero.apk
+
+      - name: Publicar versión (Releases)
+        if: env.SIGNED == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v1.0.${APP_BUILD}" Pastillero.apk \
+            --title "Pastillero 1.0.${APP_BUILD}" \
+            --notes "Versión compilada automáticamente el $(date -u +%Y-%m-%d)." \
+            --latest
