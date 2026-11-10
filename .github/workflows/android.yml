@@ -41,6 +41,24 @@ jobs:
           grep -E "versionCode|versionName" android/app/build.gradle
           npx cap sync android
 
+      - name: Crear la llave de firma (solo la primera vez)
+        env:
+          KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
+        run: |
+          if [ -n "$KEYSTORE_PASS" ] && [ ! -f android-res/release.jks.enc ]; then
+            keytool -genkeypair -keystore /tmp/release.jks -alias pastillero -keyalg RSA -keysize 2048 \
+              -validity 10000 -storepass:env KEYSTORE_PASS -keypass:env KEYSTORE_PASS \
+              -dname "CN=Pastillero, O=rormenom, C=CL"
+            openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -in /tmp/release.jks \
+              -out android-res/release.jks.enc -pass env:KEYSTORE_PASS
+            rm -f /tmp/release.jks
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add android-res/release.jks.enc
+            git commit -m "Llave de firma cifrada [skip ci]"
+            git push
+          fi
+
       - name: Compilar APK firmado
         env:
           KEYSTORE_PASS: ${{ secrets.KEYSTORE_PASS }}
