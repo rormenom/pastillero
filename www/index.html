@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F4E4A">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<title>Pastillero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F6F1E9; --card:#FFFDF9; --ink:#1E2A28; --muted:#6B7572; --line:#E7DFD2;
+  --teal:#1F4E4A; --teal-2:#2F6B65; --coral:#E07A5F; --ok:#3E8E6B; --warn:#D9822B;
+  --r:18px; --shadow:0 1px 2px rgba(30,42,40,.06),0 6px 20px rgba(30,42,40,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:Outfit,system-ui,sans-serif;font-size:16px;-webkit-tap-highlight-color:transparent}
+body{min-height:100vh;padding-bottom:92px}
+.wrap{max-width:520px;margin:0 auto;padding:0 18px}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:650;letter-spacing:-.01em}
+header{padding:26px 0 8px}
+header .hello{color:var(--muted);font-size:.95rem}
+header h1{font-size:2rem;margin-top:2px}
+.next{margin:18px 0 8px;background:var(--teal);color:#F6F1E9;border-radius:22px;padding:20px 20px 18px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.next::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.06)}
+.next .lbl{font-size:.8rem;text-transform:uppercase;letter-spacing:.12em;opacity:.7}
+.next .name{font-family:Fraunces,serif;font-size:1.55rem;margin:6px 0 2px}
+.next .when{opacity:.85}
+.next .big{position:absolute;right:20px;bottom:16px;font-family:Fraunces,serif;font-size:2.2rem;opacity:.95}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:24px 0 10px}
+.sec h2{font-size:1.25rem}
+.sec small{color:var(--muted)}
+.list{display:flex;flex-direction:column;gap:10px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 14px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow)}
+.dot{width:38px;height:38px;border-radius:12px;flex:none;display:grid;place-items:center}
+.dot svg{width:20px;height:20px}
+.item .meta{flex:1;min-width:0}
+.item .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .s{color:var(--muted);font-size:.88rem;margin-top:2px}
+.time{font-family:Fraunces,serif;font-size:1.15rem;min-width:56px;text-align:right}
+.pill{font-size:.75rem;padding:4px 9px;border-radius:99px;font-weight:600;white-space:nowrap}
+.p-ok{background:#E3F1EA;color:var(--ok)}
+.p-late{background:#FBE7DF;color:#B4512F}
+.p-up{background:#EEF0EE;color:var(--muted)}
+.p-skip{background:#F1ECE3;color:#8A7F6E}
+.item.taken{opacity:.62}
+.btn{font:inherit;font-weight:600;border:0;border-radius:14px;padding:12px 16px;cursor:pointer;background:var(--teal);color:#fff;transition:transform .08s,background .2s}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:transparent;color:var(--teal);border:1.5px solid var(--line)}
+.btn.coral{background:var(--coral)}
+.btn.sm{padding:8px 12px;border-radius:11px;font-size:.9rem}
+.btn.block{width:100%}
+.icon-btn{border:0;background:transparent;cursor:pointer;color:var(--muted);padding:6px;border-radius:10px}
+.empty{text-align:center;color:var(--muted);padding:34px 10px;background:var(--card);border:1.5px dashed var(--line);border-radius:var(--r)}
+.empty b{display:block;font-family:Fraunces,serif;color:var(--ink);font-size:1.15rem;margin-bottom:6px}
+nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,253,249,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom))}
+nav .wrap{display:flex;justify-content:space-around;padding:0}
+nav button{flex:1;border:0;background:transparent;font:inherit;font-size:.78rem;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;border-radius:12px}
+nav button svg{width:22px;height:22px}
+nav button.on{color:var(--teal);font-weight:600}
+.fab{position:fixed;right:max(18px,calc(50vw - 242px));bottom:96px;width:58px;height:58px;border-radius:20px;border:0;background:var(--coral);color:#fff;box-shadow:0 8px 24px rgba(224,122,95,.45);cursor:pointer;display:grid;place-items:center}
+.fab svg{width:26px;height:26px}
+.view{display:none}.view.on{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* sheets */
+.scrim{position:fixed;inset:0;background:rgba(20,30,28,.45);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.scrim.on{display:flex;animation:fadeS .2s}
+@keyframes fadeS{from{opacity:0}to{opacity:1}}
+.sheet{background:var(--bg);width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:26px 26px 0 0;padding:10px 20px 26px;animation:up .28s cubic-bezier(.2,.8,.2,1)}
+@keyframes up{from{transform:translateY(40px)}to{transform:none}}
+.grab{width:42px;height:5px;border-radius:9px;background:var(--line);margin:4px auto 14px}
+.sheet h3{font-size:1.4rem;margin-bottom:14px}
+label.f{display:block;font-size:.85rem;color:var(--muted);margin:14px 0 6px;font-weight:500}
+input[type=text],input[type=number],input[type=time],input[type=datetime-local],select,textarea{width:100%;font:inherit;padding:12px 14px;border-radius:13px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--teal-2)}
+.seg{display:flex;background:#ECE5D9;border-radius:14px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:transparent;font:inherit;font-weight:500;padding:10px;border-radius:11px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.colors{display:flex;gap:10px;flex-wrap:wrap}
+.colors button{width:34px;height:34px;border-radius:11px;border:3px solid transparent;cursor:pointer}
+.colors button.on{border-color:var(--ink)}
+.times{display:flex;flex-direction:column;gap:8px}
+.times .row{display:flex;gap:8px}
+.row-btns{display:flex;gap:10px;margin-top:22px}
+.row-btns .btn{flex:1}
+.hint{font-size:.83rem;color:var(--muted);margin-top:6px;line-height:1.4}
+/* alert */
+.alarm{position:fixed;inset:0;z-index:30;background:linear-gradient(160deg,#1F4E4A,#16393600 140%),#1F4E4A;color:#F6F1E9;display:none;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center}
+.alarm.on{display:flex}
+.ring{width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.08);display:grid;place-items:center;margin-bottom:22px;animation:pulse 1.4s infinite}
+.ring svg{width:52px;height:52px}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(224,122,95,.55)}70%{box-shadow:0 0 0 26px rgba(224,122,95,0)}100%{box-shadow:0 0 0 0 rgba(224,122,95,0)}}
+.alarm h2{font-size:1.9rem;margin-bottom:6px}
+.alarm .sub{opacity:.8;margin-bottom:22px}
+.alarm .doses{width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px}
+.alarm .dose{background:rgba(255,255,255,.08);border-radius:18px;padding:16px;text-align:left}
+.alarm .dose .n{font-family:Fraunces,serif;font-size:1.3rem}
+.alarm .dose .d{opacity:.75;font-size:.9rem;margin:2px 0 12px}
+.alarm .dose .b{display:flex;gap:8px}
+.alarm .dose .b .btn{flex:1;padding:11px 8px}
+.alarm .btn.light{background:#F6F1E9;color:var(--teal)}
+.alarm .btn.clear{background:rgba(255,255,255,.12);color:#fff}
+.toast{position:fixed;left:50%;bottom:104px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 16px;border-radius:13px;font-size:.92rem;opacity:0;transition:.25s;pointer-events:none;z-index:40}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--shadow)}
+.set-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.set-row:last-child{border-bottom:0}
+.set-row select{width:auto}
+.day-h{font-size:.82rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:18px 0 8px}
+.banner{background:#FFF3E6;border:1px solid #F3D8B8;color:#8A5519;border-radius:14px;padding:12px 14px;font-size:.9rem;margin-top:14px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+
+.auth{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:30px 0}
+.auth .logo{width:72px;height:72px;border-radius:24px;background:var(--teal);display:grid;place-items:center;margin-bottom:20px;box-shadow:var(--shadow)}
+.auth .logo svg{width:38px;height:38px}
+.auth h1{font-size:2.3rem}
+.auth p.lead{color:var(--muted);margin:6px 0 22px}
+.auth .err{color:#B4512F;font-size:.9rem;min-height:1.2em;margin-top:10px}
+.auth .links{display:flex;justify-content:space-between;margin-top:16px}
+.auth .links button{border:0;background:none;color:var(--teal-2);font:inherit;font-weight:500;cursor:pointer}
+.boot{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);z-index:50}
+.boot .logo{width:64px;height:64px;border-radius:22px;background:var(--teal);display:grid;place-items:center;animation:breathe 1.6s infinite}
+@keyframes breathe{50%{transform:scale(.92);opacity:.8}}
+input[type=email],input[type=password]{width:100%;font:inherit;padding:12px 14px;border-radius:13px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);outline:none}
+body.out nav,body.out .fab{display:none}
+body{padding-top:env(safe-area-inset-top)}
+</style>
+</head>
+<body class="out">
+
+<div class="boot" id="boot"><div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#F6F1E9" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="8" width="18" height="8" rx="4" transform="rotate(-35 12 12)"/><path d="M9.2 7.9l5.6 8.2"/></svg></div></div>
+
+<!-- LOGIN -->
+<div class="wrap" id="authView" style="display:none">
+  <div class="auth">
+    <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#F6F1E9" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="8" width="18" height="8" rx="4" transform="rotate(-35 12 12)"/><path d="M9.2 7.9l5.6 8.2"/></svg></div>
+    <h1 id="authTitle">Pastillero</h1>
+    <p class="lead" id="authLead">Entra para tener tus medicamentos en todos tus dispositivos.</p>
+    <form id="authForm">
+      <label class="f">Email</label>
+      <input type="email" id="aEmail" autocomplete="email" required>
+      <div id="passBox"><label class="f">Contraseña</label>
+      <input type="password" id="aPass" autocomplete="current-password" minlength="6"></div>
+      <button class="btn block" style="margin-top:20px" id="aSubmit">Entrar</button>
+      <div class="err" id="aErr"></div>
+    </form>
+    <div class="links"><button id="aToggle">Crear cuenta</button><button id="aForgot">Olvidé mi contraseña</button></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="wrap" id="appView" style="display:none">
+  <header>
+    <div class="hello" id="hello">Hola</div>
+    <h1 id="title">Hoy</h1>
+  </header>
+
+  <section class="view on" id="v-hoy">
+    <div id="notifBanner"></div>
+    <div id="nextBox"></div>
+    <div class="sec"><h2>Tomas de hoy</h2><small id="progress"></small></div>
+    <div class="list" id="todayList"></div>
+  </section>
+
+  <section class="view" id="v-meds">
+    <div class="sec"><h2>Mis medicamentos</h2><small id="medCount"></small></div>
+    <div class="list" id="medList"></div>
+  </section>
+
+  <section class="view" id="v-hist">
+    <div class="sec"><h2>Historial</h2><small>últimos 14 días</small></div>
+    <div id="histList"></div>
+  </section>
+
+  <section class="view" id="v-set">
+    <div class="sec"><h2>Avisos</h2></div>
+    <div class="card">
+      <div class="set-row"><div><b>Repetir aviso cada</b><div class="hint">Si no marcas "Tomado"</div></div><select id="setRemind"></select></div>
+      <div class="set-row"><div><b>Posponer</b><div class="hint">Al tocar "Posponer"</div></div><select id="setSnooze"></select></div>
+      <div class="set-row" id="rowSound"><div><b>Sonido en la página</b></div><select id="setSound"><option value="1">Activado</option><option value="0">Silencio</option></select></div>
+      <div class="set-row"><div><b>Notificaciones</b><div class="hint" id="notifState"></div></div><button class="btn sm ghost" id="btnNotif">Activar</button></div>
+      <div class="set-row" id="rowExact" style="display:none"><div><b>Alarmas exactas</b><div class="hint" id="exactState"></div></div><button class="btn sm ghost" id="btnExact">Permitir</button></div>
+      <div class="set-row"><div><b>Probar aviso</b></div><button class="btn sm ghost" id="btnTest">Probar</button></div>
+    </div>
+    <div class="sec"><h2>Cuenta</h2></div>
+    <div class="card">
+      <div class="set-row"><div><b id="accEmail"></b><div class="hint">Tus datos se guardan en la nube</div></div><button class="btn sm ghost" id="btnLogout">Salir</button></div>
+    </div>
+    <p class="hint" style="margin:18px 4px" id="platformHint"></p>
+  </section>
+</div>
+
+<button class="fab" id="fab" aria-label="Agregar medicamento"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+
+<nav><div class="wrap">
+  <button data-v="hoy" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Hoy</button>
+  <button data-v="meds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="8" width="18" height="8" rx="4" transform="rotate(-35 12 12)"/><path d="M9.2 7.9l5.6 8.2" /></svg>Medicamentos</button>
+  <button data-v="hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Historial</button>
+  <button data-v="set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Ajustes</button>
+</div></nav>
+
+<!-- Formulario -->
+<div class="scrim" id="formScrim"><div class="sheet">
+  <div class="grab"></div>
+  <h3 id="formTitle">Nuevo medicamento</h3>
+  <label class="f">Nombre</label>
+  <input type="text" id="fName" placeholder="Ej: Losartán">
+  <label class="f">Dosis (opcional)</label>
+  <input type="text" id="fDose" placeholder="Ej: 50 mg · 1 comprimido">
+  <label class="f">Color</label>
+  <div class="colors" id="fColors"></div>
+  <label class="f">¿Cómo lo tomas?</label>
+  <div class="seg" id="fMode"><button data-m="interval" class="on">Cada X horas</button><button data-m="fixed">Horas fijas</button></div>
+  <div id="boxInterval">
+    <label class="f">Cada cuántas horas</label>
+    <input type="number" id="fInterval" min="1" max="72" step="1" value="8">
+    <label class="f">Primera toma</label>
+    <input type="datetime-local" id="fStart">
+    <p class="hint">Las siguientes tomas se calculan desde la hora real en que marques "Tomado".</p>
+  </div>
+  <div id="boxFixed" style="display:none">
+    <label class="f">Horarios</label>
+    <div class="times" id="fTimes"></div>
+    <button class="btn sm ghost" id="fAddTime" style="margin-top:8px">+ Agregar horario</button>
+  </div>
+  <label class="f">Nota (opcional)</label>
+  <input type="text" id="fNote" placeholder="Ej: con comida">
+  <div class="row-btns">
+    <button class="btn ghost" id="fCancel">Cancelar</button>
+    <button class="btn" id="fSave">Guardar</button>
+  </div>
+  <button class="btn ghost block" id="fDelete" style="margin-top:10px;color:#B4512F;display:none">Eliminar medicamento</button>
+</div></div>
+
+<!-- Confirmación -->
+<div class="scrim" id="confScrim"><div class="sheet">
+  <div class="grab"></div>
+  <h3 id="confText">¿Seguro?</h3>
+  <div class="row-btns"><button class="btn ghost" id="confNo">Cancelar</button><button class="btn coral" id="confYes">Eliminar</button></div>
+</div></div>
+
+<!-- Alarma -->
+<div class="alarm" id="alarm">
+  <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="#F6F1E9" stroke-width="2" stroke-linecap="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+  <h2>Hora de tu medicamento</h2>
+  <div class="sub" id="alarmSub"></div>
+  <div class="doses" id="alarmDoses"></div>
+</div>
+
+
+<div class="toast" id="toast"></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>

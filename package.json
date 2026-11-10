@@ -1,0 +1,23 @@
+{
+  "name": "pastillero",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/app.js --bundle --minify --format=esm --target=es2020 --outfile=www/app.js && esbuild src/sw.js --bundle --minify --format=iife --target=es2020 --outfile=www/firebase-messaging-sw.js && cp src/schedule.js functions/schedule.js",
+    "dev": "npm run build && npx serve www",
+    "android": "npm run build && npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/local-notifications": "^8.3.1",
+    "firebase": "^13.2.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^4.0.0",
+    "@capacitor/cli": "^8.6.0",
+    "esbuild": "^0.28.2"
+  }
+}

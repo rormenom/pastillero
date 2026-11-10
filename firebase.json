@@ -1,0 +1,10 @@
+{
+  "firestore": { "rules": "firestore.rules" },
+  "hosting": {
+    "public": "www",
+    "ignore": ["firebase.json", "**/.*"],
+    "predeploy": ["npm run build"],
+    "headers": [{ "source": "firebase-messaging-sw.js", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }]
+  },
+  "functions": { "source": "functions", "runtime": "nodejs22", "predeploy": ["cp src/schedule.js functions/schedule.js"] }
+}

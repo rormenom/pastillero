@@ -1,0 +1,7 @@
+node_modules/
+android/
+www/app.js
+www/firebase-messaging-sw.js
+functions/node_modules/
+*.jks
+.firebase/

@@ -1,0 +1,9 @@
+{
+  "appId": "cl.rormeno.pastillero",
+  "appName": "Pastillero",
+  "webDir": "www",
+  "android": { "backgroundColor": "#F6F1E9" },
+  "plugins": {
+    "LocalNotifications": { "smallIcon": "ic_stat_pill", "iconColor": "#1F4E4A" }
+  }
+}
